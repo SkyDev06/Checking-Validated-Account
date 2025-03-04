@@ -1,0 +1,22 @@
+{
+  "name": "checking-validated-account",
+  "version": "1.0.0",
+  "description": "A Node.js application that verifies whether a Growtopia account is validated or invalid using only GrowID and Password. The tool attempts authentication with the provided credentials and determines the account's status based on the server's response.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkyDev06/Checking-Validated-Account.git"
+  },
+  "keywords": [
+    "growtopia"
+  ],
+  "author": "SkyDev06",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SkyDev06/Checking-Validated-Account/issues"
+  },
+  "homepage": "https://github.com/SkyDev06/Checking-Validated-Account#readme"
+}
