@@ -1,7 +1,5 @@
-const axios = require("axios");
-const https = require("https");
-
-axios.defaults.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+const { DEFAULT_ENDPOINTS, DEFAULT_PROTOCOL_VERSION, DEFAULT_GAME_VERSION } = require("./constants.js");
+const { NetworkError } = require("./errors.js");
 
 function encodeString(str) {
     return encodeURIComponent(str)
@@ -12,12 +10,12 @@ function encodeString(str) {
         .replace(/-/g, "%2D");
 }
 
-async function getMetaServer() {
-    const url = "https://www.growtopia1.com/growtopia/server_data.php";
-    const postData = "version=5.07&platform=0&protocol=214";
+async function getMetaServer(client, { endpoints = DEFAULT_ENDPOINTS, logger } = {}) {
+    const url = endpoints.metaServerUrl;
+    const postData = `version=${DEFAULT_GAME_VERSION}&platform=0&protocol=${DEFAULT_PROTOCOL_VERSION}`;
 
     try {
-        const response = await axios.post(url, postData, {
+        const response = await client.post(url, postData, {
             headers: {
                 "Host": "www.growtopia1.com",
                 "User-Agent": "UbiServices_SDK_2022.Release.9_PC64_ansi_static",
@@ -34,7 +32,13 @@ async function getMetaServer() {
 
         return metaMatch[1].trim();
     } catch (error) {
-        throw new Error(`Error fetching meta server: ${error.response ? error.response.data : error.message}`);
+        if (logger && typeof logger.warn === "function") {
+            logger.warn("Failed to fetch meta server", { error: error.message });
+        }
+        throw new NetworkError(
+            `Error fetching meta server: ${error.response ? error.response.data : error.message}`,
+            { cause: error }
+        );
     }
 }
 
