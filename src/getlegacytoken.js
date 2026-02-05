@@ -1,12 +1,16 @@
-const axios = require("axios");
-const https = require("https");
 const { getURLToken, thisHTML } = require("./fetchHTML.js");
 const { encodeString, getMetaServer, generateRandomMac, generateRandomRID } = require("./utils.js");
+const { DEFAULT_ENDPOINTS, DEFAULT_PROTOCOL_VERSION, DEFAULT_GAME_VERSION } = require("./constants.js");
+const { NetworkError } = require("./errors.js");
 
-axios.defaults.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-
-async function getLegacyToken() {
-    const meta = await getMetaServer();
+async function getLegacyToken({
+    client,
+    endpoints = DEFAULT_ENDPOINTS,
+    logger,
+    protocolVersion = DEFAULT_PROTOCOL_VERSION,
+    gameVersion = DEFAULT_GAME_VERSION,
+} = {}) {
+    const meta = await getMetaServer(client, { endpoints, logger });
     if (!meta) {
         throw new Error("Failed to retrieve meta token.");
     }
@@ -16,8 +20,8 @@ async function getLegacyToken() {
         `tankIDPass|`,
         `requestedName|`,
         `f|1`,
-        `protocol|214`,
-        `game_version|5.07`,
+        `protocol|${protocolVersion}`,
+        `game_version|${gameVersion}`,
         `fz|23331848`,
         `cbits|1024`,
         `player_age|24`,
@@ -59,8 +63,8 @@ async function getLegacyToken() {
     };
 
     try {
-        const response = await axios.post(
-            `https://login.growtopiagame.com/player/login/dashboard?valKey=40db4045f2d8c572efe8c4a060605726`,
+        const response = await client.post(
+            endpoints.legacyDashboardUrl,
             encodeString(data),
             { headers }
         );
@@ -71,7 +75,13 @@ async function getLegacyToken() {
 
         return getURLToken(response.data);
     } catch (error) {
-        throw new Error(`Error fetching Legacy Token: ${error.response ? error.response.data : error.message}`);
+        if (logger && typeof logger.warn === "function") {
+            logger.warn("Failed to fetch legacy token URL", { error: error.message });
+        }
+        throw new NetworkError(
+            `Error fetching Legacy Token: ${error.response ? error.response.data : error.message}`,
+            { cause: error }
+        );
     }
 }
 
